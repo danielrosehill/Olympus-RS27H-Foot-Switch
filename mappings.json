@@ -72,7 +72,7 @@
     "previous_proposal": "vendor mode + Input Remapper on BTN_* 272-274 (proposed by Claude earlier the same day)"
   },
   "presets": {
-    "laptop (daniellaptop)": "'Control', per README capture notes (not re-checked 2026-11-14)",
+    "laptop (daniellaptop)": "'Control' (autoload) maps BTN_RIGHT 273 -> F13: a vendor-mode leftover, obsolete since the pedal itself sends F13-F15 (2026-11-14). It doesn't grab the keyboard-mode events: F13-F15 reached libinput straight from the pedal.",
     "desktop (danieldesktop)": "none as of 2026-11-14"
   },
   "applied": [
@@ -89,6 +89,12 @@
       "action": "omfs.py set left f13 / center f14 / right f15 (single); usb-mode keyboard (item 24 = 0x18, accepted); live switch 0xE2 0x18",
       "device_state_after": "left KEY_F13, center KEY_F14, right KEY_F15 on the keyboard interface; stored mode keyboard",
       "undo": "omfs.py restore with the 2026-11-14 backup (factory consumer keys, vendor mode)"
+    },
+    {
+      "date": "2026-11-14",
+      "host": "daniellaptop",
+      "action": "pedal moved from danieldesktop to the laptop; no reconfiguration",
+      "device_state_after": "libinput debug-events: left KEY_F13, center KEY_F14, right KEY_F15 (event23, the pedal itself). The center pedal needed a firmer press on the first attempt (mechanical, not config)."
     }
   ]
 }
