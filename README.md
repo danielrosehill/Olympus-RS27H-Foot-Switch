@@ -56,9 +56,43 @@ press/release pairs about 0.2 s apart, with no firmware double-tap detection.
 This matches the manufacturer's description of the RS-27H as a 3-pedal switch
 (Play/Stop, Rewind, Fast Forward). OM System does not document the vendor-mode
 HID report layout; the press types "single / double / long" in its
-Configuration Tool apply to Keyboard mode only. A raw `hidraw` dump taken at the
-same time came back empty (the same buffering problem as above), so the
-no-extra-codes result rests on evdev, not on the raw HID reports.
+Configuration Tool apply to Keyboard mode only.
+
+### Below evdev: the raw HID layer (verified 2026-11-14)
+
+To rule out data the kernel receives but drops, the HID report descriptor was
+read from sysfs (`captures/hid-report-descriptor-2026-11-14.txt`) and raw reports
+were read from `/dev/hidraw*` while every pedal was tapped and held
+(`captures/hidraw-reports-2026-11-14.txt`).
+
+The device has one configuration, one HID interface and one endpoint (`0x81`,
+IN, 64 bytes, 10 ms polling). The descriptor (Consumer page, application
+collection) declares:
+
+| Report | Size | Contents |
+| --- | --- | --- |
+| Input | 4 bytes | 32 one-bit buttons, Button usages 1–32 → evdev 256–287 |
+| Input | 60 bytes | Consumer usage `0x00` (unassigned), signed 8-bit values. **Linux maps no event to this, so evdev cannot see it** |
+| Output | 64 bytes | Host-to-device data, Consumer usage `0x00`. Presumably the vendor command channel used by the Configuration Tool and ODMS (inferred, undocumented) |
+
+There are no Feature reports. Observed raw reports, all 64 bytes long:
+
+| Button bytes | Meaning | evdev |
+| --- | --- | --- |
+| `00000100` | Button 17 = right pedal | 272 |
+| `00000200` | Button 18 = centre pedal | 273 |
+| `00000400` | Button 19 = left pedal | 274 |
+| `00000600` | Left and centre together (bits OR together) | 273 + 274 |
+| `00000000` | All released | — |
+
+The 60 unlabelled bytes were **zero in every report**, including during holds.
+So evdev is not hiding anything the pedal sends: only bits 17–19 of the 32 are
+ever set, and the other 29 button bits correspond to no physical switch.
+
+The one layer not probed is the **64-byte output report**. Sending it vendor
+commands could reveal a status reply or change the firmware mode (the tool's own
+"reopening changes the mode" warning suggests the mode is written this way), so
+it was deliberately left alone.
 
 Capture gotchas: input-remapper grabs the device, so stop its preset first
 (`input-remapper-control --command stop --device "OLYMPUS CORPORATION HID
