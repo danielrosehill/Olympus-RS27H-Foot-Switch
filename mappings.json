@@ -16,7 +16,11 @@
       "keyboard: up to 6 HID usages + modifier bitmap (any usage, incl. F13-F24)",
       "consumer: one 16-bit usage (media keys, Voice Command 0x0CF, ...)"
     ],
-    "triggers": ["single", "double", "long"],
+    "triggers": [
+      "single",
+      "double",
+      "long"
+    ],
     "usb_modes": {
       "vendor (0x08, 'OM SYSTEM mode')": "raw per-pedal button bits; bindings NOT applied",
       "keyboard (0x18, 'Keyboard mode')": "pedal types its item-23 bindings"
@@ -25,21 +29,47 @@
   },
   "linux_visible_subset": {
     "vendor_mode": {
-      "left": {"evdev": 274, "name": "BTN_MIDDLE", "hid_bit": "0x00000400"},
-      "center": {"evdev": 273, "name": "BTN_RIGHT", "hid_bit": "0x00000200"},
-      "right": {"evdev": 272, "name": "BTN_LEFT", "hid_bit": "0x00000100"},
+      "left": {
+        "evdev": 274,
+        "name": "BTN_MIDDLE",
+        "hid_bit": "0x00000400"
+      },
+      "center": {
+        "evdev": 273,
+        "name": "BTN_RIGHT",
+        "hid_bit": "0x00000200"
+      },
+      "right": {
+        "evdev": 272,
+        "name": "BTN_LEFT",
+        "hid_bit": "0x00000100"
+      },
       "behaviour": "momentary press/release, hold works, chords report each pedal; no firmware double/long",
       "verified": "2026-11-14, evtest + hidraw (README)"
     },
     "keyboard_mode": {
-      "behaviour": "whatever item 23 holds; momentary hold not verified",
-      "verified": "not yet: the stored-mode write (item 24) was refused on 2026-11-14"
+      "left": {
+        "evdev": 183,
+        "name": "KEY_F13"
+      },
+      "center": {
+        "evdev": 184,
+        "name": "KEY_F14"
+      },
+      "right": {
+        "evdev": 185,
+        "name": "KEY_F15"
+      },
+      "interface": "if01 (boot keyboard), /dev/input/by-id/usb-OLYMPUS_CORPORATION_HID_FootSwitch_RS_Series_<serial>-if01-event-kbd",
+      "behaviour": "press and release ~8 ms apart per tap; no hold",
+      "verified": "2026-11-14, evtest on danieldesktop, captures/evtest-keyboard-mode-f13-f15-2026-11-14.txt"
     }
   },
   "chosen_layer": {
-    "decision": "Vendor mode + Input Remapper. The three pedal codes are already unique and momentary; nothing has to be written to the device. Input Remapper maps by device name, so BTN_* from this device cannot collide with a real mouse.",
-    "fallback": "Keyboard mode with left=F13, center=F14, right=F15 written via tools/omfs.py, for machines without Input Remapper. Not applied.",
-    "decided": "2026-11-14 (proposed by Claude, matching Daniel's 'unique non-Windows code per pedal, then Input Remapper' plan)"
+    "decision": "Keyboard mode with left=F13, center=F14, right=F15 (single trigger) written to the pedal, so every machine sees unique keys no physical keyboard sends; Input Remapper (or any hotkey tool) maps F13-F15 onward.",
+    "decided": "2026-11-14 (Daniel)",
+    "caveat": "In keyboard mode a press is a canned keystroke (press + release 8 ms apart, regardless of how long the pedal is held). For momentary hold/push-to-talk, switch back to vendor mode (omfs.py usb-mode vendor) and map BTN_* 272-274 instead.",
+    "previous_proposal": "vendor mode + Input Remapper on BTN_* 272-274 (proposed by Claude earlier the same day)"
   },
   "presets": {
     "laptop (daniellaptop)": "'Control', per README capture notes (not re-checked 2026-11-14)",
@@ -52,6 +82,13 @@
       "action": "read-only info/backup, then wrote the same bindings back (set left consumer:previous; restore of all three) to test the write path",
       "device_state_after": "unchanged: left consumer 0x0B6 Previous, right 0x0B5 Next, center 0x0CD Play/Pause, all single; usb mode vendor (0x08)",
       "backup": "danieldesktop:/tmp/pedal-backup-2026-11-14.json"
+    },
+    {
+      "date": "2026-11-14",
+      "host": "danieldesktop",
+      "action": "omfs.py set left f13 / center f14 / right f15 (single); usb-mode keyboard (item 24 = 0x18, accepted); live switch 0xE2 0x18",
+      "device_state_after": "left KEY_F13, center KEY_F14, right KEY_F15 on the keyboard interface; stored mode keyboard",
+      "undo": "omfs.py restore with the 2026-11-14 backup (factory consumer keys, vendor mode)"
     }
   ]
 }

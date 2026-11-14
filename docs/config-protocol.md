@@ -97,8 +97,9 @@ Track, centre = `0x0CD` Play/Pause, all single.
 | `0x18` | "Keyboard mode" | Vendor plus keyboard (`0x08 \| 0x10`): the pedal types its item-23 bindings |
 | `0x10` | (debug) | Keyboard only; sent live via `0xE2` when the tool closes, never stored |
 
-Item 24 is the stored power-on mode. **Open issue (2026-11-14):** writing item 24 from Linux
-with the tool's own payload (`01 08`, the value already stored) was answered "ignored". Item-23
+Item 24 is the stored power-on mode. **Resolved 2026-11-14:** writing item 24 with the value already stored (`01 08`) is answered
+"ignored". Writing a different value (`01 18`) was accepted. So the device appears to refuse no-op writes (inferred from one
+run each). Item-23
 writes in the same session were accepted. Not yet known whether the device only accepts item 24
 in keyboard mode, after a `0xE2` switch, or only when the value changes. Test that with `omfs.py usb-mode keyboard`
 when keyboard mode is actually wanted. `0xE2 <mode>` switches immediately. When the tool exits it sends

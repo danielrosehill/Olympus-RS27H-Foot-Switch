@@ -106,6 +106,13 @@ FootSwitch RS Series"`) and restart it afterwards with `--command start ...
 otherwise a `timeout` kill discards the buffered output and the capture looks
 empty.
 
+## Current mapping (applied 2026-11-14)
+
+Keyboard mode, single press: **left = F13, centre = F14, right = F15**, verified with evtest
+(`captures/evtest-keyboard-mode-f13-f15-2026-11-14.txt`). Map F13–F15 onward in Input Remapper or any
+hotkey tool. Each tap is a canned press+release, so holding a pedal doesn't hold the key. For
+push-to-talk, use vendor mode instead (see `mappings.json`).
+
 ## Configuring from Linux (2026-11-14)
 
 ![OM Foot Switch Configuration Tool 2.0.1, the official Windows tool](docs/images/om-foot-switch-configuration-tool-2.0.1.png)
@@ -124,8 +131,8 @@ python3 tools/omfs.py restore pedal.json
 ```
 
 Verified on the unit: `info`, `backup`, read-only probing of every item ID, and `set` / `restore`
-(by writing the existing bindings back; the device read back identical). **`usb-mode` was refused**
-by the pedal (open issue, see the protocol doc). `restore-defaults` hasn't been run.
+(by writing the existing bindings back; the device read back identical). `usb-mode` works when the mode
+actually changes (a no-op write is refused). `restore-defaults` hasn't been run.
 
 **Mapping layer:** [`mappings.json`](mappings.json) records the full firmware capability, the
 subset Linux sees, the codes Input Remapper should map (vendor-mode `BTN_*` 272–274, unique per

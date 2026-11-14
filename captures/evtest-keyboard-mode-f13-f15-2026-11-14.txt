@@ -1,0 +1,6 @@
+[if01-event-kbd] Event: time 1794672229.442282, type 1 (EV_KEY), code 183 (KEY_F13), value 1
+[if01-event-kbd] Event: time 1794672229.450267, type 1 (EV_KEY), code 183 (KEY_F13), value 0
+[if01-event-kbd] Event: time 1794672230.314285, type 1 (EV_KEY), code 184 (KEY_F14), value 1
+[if01-event-kbd] Event: time 1794672230.322286, type 1 (EV_KEY), code 184 (KEY_F14), value 0
+[if01-event-kbd] Event: time 1794672231.090298, type 1 (EV_KEY), code 185 (KEY_F15), value 1
+[if01-event-kbd] Event: time 1794672231.098295, type 1 (EV_KEY), code 185 (KEY_F15), value 0
