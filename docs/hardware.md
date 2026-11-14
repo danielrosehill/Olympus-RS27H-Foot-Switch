@@ -122,3 +122,22 @@ Read these off the unit and its base label, then fill in:
 - Dimensions and weight (one reseller listing says ~1.45 lb / 0.66 kg — unverified)
 - Whether the box contained the RS-232 cable as well as the USB one
 - Firmware/revision markings, if any
+
+## Firmware: updates and replacement (checked 2026-11-14)
+
+- **No firmware has ever been published**, official or third-party. OM System's downloads for the
+  RS27H/N, RS28H/N and RS31H/N are only the Configuration Tool (Windows 2.0.1, Apr 2024 package;
+  Mac 2.x), and the tool has no firmware-update code (see config-protocol.md). The unit reports `Ver 1.01`
+  (item 2). Searched 2026-11-14: OM System support/download pages, retailer listings, general web.
+- **No USB update path.** As `07b4:0292` the device (bcdDevice 1.00) has three HID interfaces
+  (vendor 64-byte, boot keyboard 8-byte, 5-byte consumer/mouse) and no DFU interface, and the
+  command set (0xE0–0xE3) has no bootloader or flash command. Flashing would need the case opened,
+  the MCU identified and debug pads found; no one has published the chip ID or a dump.
+- **Practical "custom firmware" = replace the board.** A 2023 teardown of the sibling RS31H
+  (Lianna, <https://liannaee.blogspot.com/2023/03/olympus-rs31h-hardware-with-talon-voice.html>):
+  six Phillips screws on the base plate, white retention clips, the switches slide out, and a small
+  Olympus PCB sits under them. Swap it for a Pro Micro (32U4) or RP2040 board running QMK/KMK/Arduino
+  wired to the original switches. Keep the original PCB so the change can be undone. The same author found that
+  USB reverse engineering of the stock board gives "basic keypresses" only, which matches this repo's findings.
+- **Not needed for the current goal:** vendor mode already gives three unique, momentary codes for
+  Input Remapper (mappings.json). A board swap only adds on-device layers/macros without a host daemon.
