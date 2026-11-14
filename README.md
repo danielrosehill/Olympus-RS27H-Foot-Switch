@@ -14,7 +14,9 @@ Opened 2026-08-13. The per-unit USB serial is replaced with `<serial>` throughou
 | Per-pedal event codes captured | **Not done** — capture window ran, no presses were recorded; parked 2026-08-13 |
 | Number of physical pedals | **Unresolved** — vendor documents 3 buttons, unit was described as one tread; see below |
 | Momentary (hold) vs canned keystroke | **Not verified** — this is the load-bearing question for push-to-talk |
-| Vendor config tool run | Not yet — Windows-only, planned on a Windows machine |
+| Vendor config tool run | **Done 2026-11-14** — OM Foot Switch Configuration Tool 2.0.1 in the `win11` VM on danieldesktop; decompiled and reimplemented |
+| Configure from Linux | **Working 2026-11-14** — `tools/omfs.py` reads/writes bindings, USB mode, backup/restore; protocol in [docs/config-protocol.md](docs/config-protocol.md) |
+| Firmware | `Ver 1.01` (item 2), model `RS-27H` (item 0), read 2026-11-14 |
 | Context-dependent mapping built | Not started |
 
 ## The goal this device was bought for
@@ -89,10 +91,13 @@ The 60 unlabelled bytes were **zero in every report**, including during holds.
 So evdev is not hiding anything the pedal sends: only bits 17–19 of the 32 are
 ever set, and the other 29 button bits correspond to no physical switch.
 
-The one layer not probed is the **64-byte output report**. Sending it vendor
-commands could reveal a status reply or change the firmware mode (the tool's own
-"reopening changes the mode" warning suggests the mode is written this way), so
-it was deliberately left alone.
+The **64-byte output report** is the vendor command channel. It was decoded on
+2026-11-14 from the Configuration Tool itself; see
+[docs/config-protocol.md](docs/config-protocol.md). The one-interface description above is the
+legacy `0218` enumeration. As `0292` (since 2026-11-14) the unit exposes **three** HID interfaces
+(`/dev/hidraw7`–`9` on danieldesktop: `:1.0` command/vendor, `:1.1`, `:1.2`; Windows lists
+keyboard, mouse and consumer-control devices). The per-interface descriptors haven't been
+captured yet.
 
 Capture gotchas: input-remapper grabs the device, so stop its preset first
 (`input-remapper-control --command stop --device "OLYMPUS CORPORATION HID
@@ -101,12 +106,42 @@ FootSwitch RS Series"`) and restart it afterwards with `--command start ...
 otherwise a `timeout` kill discards the buffered output and the capture looks
 empty.
 
+## Configuring from Linux (2026-11-14)
+
+![OM Foot Switch Configuration Tool 2.0.1, the official Windows tool](docs/images/om-foot-switch-configuration-tool-2.0.1.png)
+
+The official tool (above) only runs on Windows. `tools/omfs.py` speaks the same protocol over
+`/dev/hidraw`, standard library only, with JSON output:
+
+```bash
+python3 tools/omfs.py info                        # serial, firmware mode, all three bindings
+python3 tools/omfs.py backup > pedal.json         # take one before writing
+python3 tools/omfs.py set left f13                # keys the Windows UI doesn't offer
+python3 tools/omfs.py set center ctrl+shift+f14 --long
+python3 tools/omfs.py set right consumer:voicecommand
+python3 tools/omfs.py usb-mode keyboard           # bindings only fire in keyboard mode
+python3 tools/omfs.py restore pedal.json
+```
+
+Verified on the unit: `info`, `backup`, read-only probing of every item ID, and `set` / `restore`
+(by writing the existing bindings back; the device read back identical). **`usb-mode` was refused**
+by the pedal (open issue, see the protocol doc). `restore-defaults` hasn't been run.
+
+**Mapping layer:** [`mappings.json`](mappings.json) records the full firmware capability, the
+subset Linux sees, the codes Input Remapper should map (vendor-mode `BTN_*` 272–274, unique per
+pedal), the F13–F15 keyboard-mode fallback, and a log of everything applied to the device. The firmware holds one binding per pedal. For more, leave it in
+vendor mode and map on the host (see the protocol doc's last section).
+
 ## Layout
 
 | Path | Contents |
 | --- | --- |
 | `docs/hardware.md` | Device identity, connector, part numbers and spares |
 | `docs/linux-integration.md` | evdev findings, config tooling, the mapping plan, how to resume the capture |
+| `mappings.json` | Mapping layer: firmware full set → Linux-visible subset → Input Remapper, plus the applied log |
+| `docs/config-protocol.md` | The Configuration Tool's HID protocol, decoded, and what it unlocks |
+| `tools/omfs.py` | Linux configuration CLI (hidraw, no dependencies) |
+| `docs/images/` | Screenshot of the official Windows tool |
 | `docs/alternatives.md` | Stream Deck Pedal comparison and whether the serial heritage is a red flag |
 | `captures/` | Raw `evtest` and `lsusb` output, dated |
 

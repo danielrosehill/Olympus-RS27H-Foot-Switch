@@ -1,0 +1,57 @@
+{
+  "_about": "Mapping layer for the Olympus RS-27H: what the pedal can do (firmware), what Linux sees (a subset), and the unique codes handed to Input Remapper. Append to 'applied' every time something is written to the device or a preset is created. Started 2026-11-14.",
+  "device": {
+    "model": "RS-27H (item 0)",
+    "firmware": "Ver 1.01 (item 2)",
+    "usb_ids": {
+      "0x0218": "legacy RS27/RS28 enumeration, seen 2026-08-13; one HID interface",
+      "0x0292": "native RS27H enumeration, seen 2026-11-14; three HID interfaces, interface 0 = command channel"
+    },
+    "vendor_id": "0x07B4",
+    "input_remapper_device_name": "OLYMPUS CORPORATION HID FootSwitch RS Series"
+  },
+  "firmware_full_set": {
+    "bindings": "one per pedal (3 on RS-27H), item 23",
+    "binding_kinds": [
+      "keyboard: up to 6 HID usages + modifier bitmap (any usage, incl. F13-F24)",
+      "consumer: one 16-bit usage (media keys, Voice Command 0x0CF, ...)"
+    ],
+    "triggers": ["single", "double", "long"],
+    "usb_modes": {
+      "vendor (0x08, 'OM SYSTEM mode')": "raw per-pedal button bits; bindings NOT applied",
+      "keyboard (0x18, 'Keyboard mode')": "pedal types its item-23 bindings"
+    },
+    "source": "docs/config-protocol.md"
+  },
+  "linux_visible_subset": {
+    "vendor_mode": {
+      "left": {"evdev": 274, "name": "BTN_MIDDLE", "hid_bit": "0x00000400"},
+      "center": {"evdev": 273, "name": "BTN_RIGHT", "hid_bit": "0x00000200"},
+      "right": {"evdev": 272, "name": "BTN_LEFT", "hid_bit": "0x00000100"},
+      "behaviour": "momentary press/release, hold works, chords report each pedal; no firmware double/long",
+      "verified": "2026-11-14, evtest + hidraw (README)"
+    },
+    "keyboard_mode": {
+      "behaviour": "whatever item 23 holds; momentary hold not verified",
+      "verified": "not yet: the stored-mode write (item 24) was refused on 2026-11-14"
+    }
+  },
+  "chosen_layer": {
+    "decision": "Vendor mode + Input Remapper. The three pedal codes are already unique and momentary; nothing has to be written to the device. Input Remapper maps by device name, so BTN_* from this device cannot collide with a real mouse.",
+    "fallback": "Keyboard mode with left=F13, center=F14, right=F15 written via tools/omfs.py, for machines without Input Remapper. Not applied.",
+    "decided": "2026-11-14 (proposed by Claude, matching Daniel's 'unique non-Windows code per pedal, then Input Remapper' plan)"
+  },
+  "presets": {
+    "laptop (daniellaptop)": "'Control', per README capture notes (not re-checked 2026-11-14)",
+    "desktop (danieldesktop)": "none as of 2026-11-14"
+  },
+  "applied": [
+    {
+      "date": "2026-11-14",
+      "host": "danieldesktop",
+      "action": "read-only info/backup, then wrote the same bindings back (set left consumer:previous; restore of all three) to test the write path",
+      "device_state_after": "unchanged: left consumer 0x0B6 Previous, right 0x0B5 Next, center 0x0CD Play/Pause, all single; usb mode vendor (0x08)",
+      "backup": "danieldesktop:/tmp/pedal-backup-2026-11-14.json"
+    }
+  ]
+}
