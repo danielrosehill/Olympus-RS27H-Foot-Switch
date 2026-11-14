@@ -30,17 +30,29 @@ desktop can collide with it. See [docs/linux-integration.md](docs/linux-integrat
 for how that mapping is intended to work and why the vendor's Windows tool is
 the wrong layer to put it in.
 
-## Open question: how many pedals does this unit have?
+## Pedal event codes (captured 2026-11-14)
 
-Every vendor and reseller source describes the RS-27H as a **3-button** foot
-switch (B&H sells it as "RS-27H 3-Button Footswitch with Keyboard Function").
-The unit in hand was described as the variant with a single tread surface.
+Three independent switches, confirmed by pressing each one with `evtest` on the
+default (vendor) firmware mode. The kernel names are mouse-button names and are
+**mirrored**: the left pedal is not `BTN_LEFT`.
 
-These may not conflict — a single wide treadle plate can carry three switch
-zones — but it is not settled, and it changes how many event codes we expect.
-Resolve it by looking at the unit and by finishing the event capture. Until then
-treat "one pedal" as an observation about the physical surface, not about the
-number of switches.
+| Physical pedal | Code | evdev name |
+| --- | --- | --- |
+| Left | 274 | `BTN_MIDDLE` |
+| Centre | 273 | `BTN_RIGHT` |
+| Right | 272 | `BTN_LEFT` |
+
+All three are momentary: one press is `value 1` on press and `value 0` on
+release, with no auto-repeat (`value 2`) events. A 2.7 s hold on the centre pedal
+produced a single press and a single release, so hold-to-talk works without
+vendor configuration. Raw capture: `captures/evtest-presses-2026-11-14.txt`.
+
+Capture gotchas: input-remapper grabs the device, so stop its preset first
+(`input-remapper-control --command stop --device "OLYMPUS CORPORATION HID
+FootSwitch RS Series"`) and restart it afterwards with `--command start ...
+--preset Control`. Run evtest as `stdbuf -oL evtest` when redirecting to a file,
+otherwise a `timeout` kill discards the buffered output and the capture looks
+empty.
 
 ## Layout
 
