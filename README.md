@@ -47,6 +47,19 @@ release, with no auto-repeat (`value 2`) events. A 2.7 s hold on the centre peda
 produced a single press and a single release, so hold-to-talk works without
 vendor configuration. Raw capture: `captures/evtest-presses-2026-11-14.txt`.
 
+A second capture (`captures/evtest-holds-chords-2026-11-14.txt`) held left and
+right for about 2.5 s each, pressed every two-pedal combination and all three
+together, and double-tapped the centre. Result: **no codes beyond 272–274**,
+even though the descriptor advertises 32 (256–287). Chords report each pedal
+independently, so there is no combined code, and a double-tap is two plain
+press/release pairs about 0.2 s apart, with no firmware double-tap detection.
+This matches the manufacturer's description of the RS-27H as a 3-pedal switch
+(Play/Stop, Rewind, Fast Forward). OM System does not document the vendor-mode
+HID report layout; the press types "single / double / long" in its
+Configuration Tool apply to Keyboard mode only. A raw `hidraw` dump taken at the
+same time came back empty (the same buffering problem as above), so the
+no-extra-codes result rests on evdev, not on the raw HID reports.
+
 Capture gotchas: input-remapper grabs the device, so stop its preset first
 (`input-remapper-control --command stop --device "OLYMPUS CORPORATION HID
 FootSwitch RS Series"`) and restart it afterwards with `--command start ...
