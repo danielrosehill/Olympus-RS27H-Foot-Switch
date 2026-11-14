@@ -81,7 +81,7 @@
       "host": "danieldesktop",
       "action": "read-only info/backup, then wrote the same bindings back (set left consumer:previous; restore of all three) to test the write path",
       "device_state_after": "unchanged: left consumer 0x0B6 Previous, right 0x0B5 Next, center 0x0CD Play/Pause, all single; usb mode vendor (0x08)",
-      "backup": "danieldesktop:/tmp/pedal-backup-2026-11-14.json"
+      "backup": "danieldesktop:~/olympus-capture/pedal-backup-2026-11-14.json (not in repo: contains the unit serial)"
     },
     {
       "date": "2026-11-14",
